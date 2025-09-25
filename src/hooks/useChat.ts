@@ -1,12 +1,20 @@
 // hooks/useChat.ts
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+
+interface FileAttachment {
+  name: string;
+  type: string;
+  size: number;
+  url?: string;
+  location?: string;
+}
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: string;
-  files?: any[];
+  files?: FileAttachment[];
   toolCalls?: any[];
 }
 
@@ -32,10 +40,31 @@ export function useChat({
   const eventSourceRef = useRef<EventSource | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  // Cleanup object URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      messages.forEach(message => {
+        if (message.files) {
+          message.files.forEach(file => {
+            if (file.url) {
+              URL.revokeObjectURL(file.url);
+            }
+          });
+        }
+      });
+    };
+  }, [messages]);
+
+  const handleSubmit = useCallback(async (files?: File[]) => {
+    if (!input.trim() && (!files || files.length === 0)) return;
     
-    if (!input.trim()) return;
+    // Create file attachments for UI display
+    const fileAttachments: FileAttachment[] = files?.map(file => ({
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      url: URL.createObjectURL(file) // Create preview URL
+    })) || [];
     
     // Add user message
     const userMessage: Message = {
@@ -43,6 +72,7 @@ export function useChat({
       content: input,
       role: 'user',
       timestamp: new Date().toISOString(),
+      files: fileAttachments,
     };
     
     setMessages(prev => [...prev, userMessage]);
@@ -66,6 +96,13 @@ export function useChat({
       formData.append('conversationId', conversationId);
       formData.append('userId', userId);
       formData.append('streaming', 'true');
+      
+      // Append files if any
+      if (files && files.length > 0) {
+        files.forEach((file) => {
+          formData.append('files', file);
+        });
+      }
       
       // Create a new AbortController for this request
       abortControllerRef.current = new AbortController();
@@ -107,6 +144,10 @@ export function useChat({
               const data = JSON.parse(line.slice(6));
               
               switch (data.type) {
+                case 'start':
+                  // Handle initial session data if needed
+                  break;
+                  
                 case 'chunk':
                   assistantContent += data.content;
                   setMessages(prev => prev.map(msg => 
@@ -157,10 +198,21 @@ export function useChat({
   }, []);
   
   const resetChat = useCallback(() => {
+    // Revoke object URLs before clearing messages
+    messages.forEach(message => {
+      if (message.files) {
+        message.files.forEach(file => {
+          if (file.url) {
+            URL.revokeObjectURL(file.url);
+          }
+        });
+      }
+    });
+    
     setMessages([]);
     setConversationId(`conv_${Date.now()}`);
     setError(null);
-  }, []);
+  }, [messages]);
   
   return {
     messages,

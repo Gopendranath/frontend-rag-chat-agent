@@ -12,10 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Loader2, Send, Square, Trash2 } from "lucide-react";
+import { Loader2, Send, Square, Trash2, Paperclip, X } from "lucide-react";
 import { Response } from "@/components/ai-elements/response";
 import { Message, MessageContent } from "@/components/ai-elements/message";
+import { useState, useRef, ChangeEvent } from "react";
 
 export default function ChatPage() {
   const {
@@ -29,11 +29,36 @@ export default function ChatPage() {
     resetChat,
   } = useChat();
 
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleSubmit(selectedFiles);
+      setSelectedFiles([]); // Clear files after submission
     }
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...filesArray]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit(selectedFiles);
+    setSelectedFiles([]); // Clear files after submission
   };
 
   return (
@@ -45,16 +70,26 @@ export default function ChatPage() {
             <CardTitle className="text-xl font-semibold">
               RAG Chat Assistant
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetChat}
-              disabled={isLoading}
-              className="flex items-center gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-              Clear
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={() => alert('History feature coming soon!')}
+              >
+                History
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetChat}
+                disabled={isLoading}
+                className="flex items-center gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -71,6 +106,31 @@ export default function ChatPage() {
                   <Message from={message.role} key={message.id}>
                     <MessageContent>
                       <Response>{message.content}</Response>
+                      {/* Display file attachments for user messages */}
+                      {message.role === 'user' && message.files && message.files.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-muted-foreground mb-1">Attachments:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {message.files.map((file, index) => (
+                              <div key={index} className="flex items-center gap-1 text-sm bg-muted px-2 py-1 rounded">
+                                {file.type.startsWith('image/') ? (
+                                  <img 
+                                    src={file.url} 
+                                    alt={file.name} 
+                                    className="h-8 w-8 object-cover rounded"
+                                  />
+                                ) : (
+                                  <Paperclip className="h-4 w-4" />
+                                )}
+                                <span className="max-w-[150px] truncate">{file.name}</span>
+                                <span className="text-muted-foreground text-xs">
+                                  ({(file.size / 1024).toFixed(1)}KB)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </MessageContent>
                   </Message>
                 ))}
@@ -109,37 +169,91 @@ export default function ChatPage() {
         {/* Input area */}
         <CardFooter className="pt-3 border-t">
           <form
-            onSubmit={handleSubmit}
-            className="flex w-full items-center gap-2"
+            onSubmit={onSubmit}
+            className="flex w-full flex-col gap-2"
           >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message here..."
-              disabled={isLoading}
-              className="flex-grow rounded-xl"
-            />
-            {isLoading ? (
+            {/* File attachments preview */}
+            {selectedFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center gap-1 text-sm bg-muted px-2 py-1 rounded">
+                    {file.type.startsWith('image/') ? (
+                      <img 
+                        src={URL.createObjectURL(file)} 
+                        alt={file.name} 
+                        className="h-8 w-8 object-cover rounded"
+                      />
+                    ) : (
+                      <Paperclip className="h-4 w-4" />
+                    )}
+                    <span className="max-w-[100px] truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex w-full items-center gap-2">
+              {/* Hidden file input */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                multiple
+                accept=".pdf,image/*"
+                className="hidden"
+              />
+              
+              {/* File attachment button */}
               <Button
                 type="button"
-                onClick={stopGeneration}
+                variant="outline"
                 size="icon"
-                variant="destructive"
+                onClick={triggerFileInput}
+                disabled={isLoading}
                 className="rounded-full"
               >
-                <Square className="h-4 w-4" />
+                <Paperclip className="h-4 w-4" />
               </Button>
-            ) : (
-              <Button
-                type="submit"
-                size="icon"
-                className="rounded-full"
-                disabled={!input.trim()}
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            )}
+              
+              {/* Text input */}
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type your message here..."
+                disabled={isLoading}
+                className="flex-grow rounded-xl"
+              />
+              
+              {/* Send/Stop button */}
+              {isLoading ? (
+                <Button
+                  type="button"
+                  onClick={stopGeneration}
+                  size="icon"
+                  variant="destructive"
+                  className="rounded-full"
+                >
+                  <Square className="h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="rounded-full"
+                  disabled={!input.trim() && selectedFiles.length === 0}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </form>
         </CardFooter>
       </Card>
