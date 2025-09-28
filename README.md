@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend RAG Chat Agent
 
-## Getting Started
+A small, modern React + Next.js frontend for a retrieval-augmented generation (RAG) chat agent. The app demonstrates a chat UI that integrates local/remote knowledge sources and AI models to provide context-aware responses, message artifacts, inline citations, and developer-oriented UI components.
 
-First, run the development server:
+## What this project is
+
+This repository contains a Next.js application (App Router) that implements a chat interface built with React and Tailwind CSS. It’s designed as a frontend demo for RAG-style chat agents and includes a collection of composable UI primitives and AI-specific elements (message cards, context blocks, tool outputs, code blocks, image previews, etc.).
+
+Key goals:
+
+- Provide a polished chat UI for exploring retrieval-augmented chat flows
+
+- Show how to compose AI responses with structured artifacts (sources, citations, suggestions)
+
+- Demonstrate integration patterns for streaming/real-time AI responses
+
+## Features
+
+- Modern Next.js app (App Router)
+- Rich chat UI components and AI-focused elements
+- Message streaming and processing modes
+- Theme support (light/dark)
+- Accessible UI primitives using Radix UI
+- Syntax highlighted code blocks and image previews
+
+## Technologies
+
+Primary technologies used in this project (extracted from `package.json`):
+
+- Next.js 15 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Radix UI (avatar, dialog, dropdowns, tooltip, scroll area, etc.)
+- AI packages: `ai` and `@ai-sdk/react` for model/assistant integrations
+- Axios for HTTP requests
+- lucide-react for icons
+- react-syntax-highlighter for code blocks
+- Embla carousel for media carousels
+- Utility libraries: `clsx`, `nanoid`, `tokenlens`, `class-variance-authority`, `tailwind-merge`
+
+Dev tooling:
+
+- ESLint
+- TypeScript types for React & Node
+
+## Repository structure
+
+- `src/app` — Next.js app entry, pages and global styles
+- `src/components` — UI primitives, chat components, and AI elements
+- `src/hooks` — custom React hooks (e.g. `useChat`)
+- `src/lib` — utility functions
+
+## Quick start
+
+1. Install dependencies (this project uses pnpm in the repo):
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Start the development server:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Open your browser to `http://localhost:3000`.
 
-## Learn More
+Notes:
 
-To learn more about Next.js, take a look at the following resources:
+- Environment variables or backend endpoints for the AI model may be required depending on how the project is wired (not included here). Check `src` files for any references to API keys or backend routes.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Build for production with `pnpm build` and run with `pnpm start`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Backend
 
-## Deploy on Vercel
+This frontend is designed to work with a companion backend that handles PDF ingestion, embeddings, and AI model requests. A recommended backend repository is:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+-`https://github.com/Gopendranath/Rag-pdf-chat-backend`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+To integrate:
+
+- Check the backend README for environment variables and API endpoints.
+- Point the frontend's API calls (if any) to the backend server URL (for development, usually `http://localhost:PORT`).
+- Ensure CORS and any API keys are configured on the backend.
+
+## Contributing
+
+Contributions are welcome. Open issues or PRs to add features, fix bugs, or improve docs.
+
+## License
+
+This project doesn't include a license file. Add one (for example, MIT) if you want to allow reuse.
