@@ -95,20 +95,28 @@ export const useChat = () => {
   const loadConversation = async (convId: string) => {
     try {
       console.log(`Loading conversation ${convId}`);
+      const response = await fetch(`http://localhost:5000/api/chat/${convId}`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load conversation");
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || "Unknown error");
+      }
+
+      
+
       setConversationId(convId);
       setMessages([]);
       setInput("");
       setError(null);
+      
+      // console.log(data.data)
 
       // In a real app, we would load the conversation messages here
-      setMessages([
-        {
-          id: Date.now().toString(),
-          role: "assistant",
-          content: `Conversation ${convId} loaded. This is a placeholder - in a real implementation, the actual messages would be loaded here.`,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      setMessages(data.data.messages || []);
     } catch (err) {
       console.error("Failed to load conversation:", err);
       setError("Failed to load conversation");
@@ -218,7 +226,7 @@ export const useChat = () => {
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
-      let assistantMessageId = Date.now().toString();
+      const assistantMessageId = Date.now().toString();
 
       setMessages((prev) => [
         ...prev,
