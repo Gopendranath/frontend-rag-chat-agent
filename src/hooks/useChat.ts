@@ -26,6 +26,7 @@ interface Conversation {
 export const useChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [getDocs, setGetDocs] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -197,7 +198,7 @@ export const useChat = () => {
     );
     const hasImages = files.some((file) => file.type.startsWith("image/"));
 
-    if (hasDocuments) {
+    if (hasDocuments || getDocs) {
       formData.append("processDocuments", "true");
     }
     if (hasImages) {
@@ -381,6 +382,8 @@ export const useChat = () => {
     messages,
     input,
     setInput,
+    getDocs,
+    setGetDocs,
     isLoading,
     error,
     selectedFiles,

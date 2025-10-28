@@ -16,6 +16,8 @@ export default function ChatPage() {
     messages,
     input,
     setInput,
+    getDocs,
+    setGetDocs,
     isLoading,
     error,
     selectedFiles,
@@ -48,6 +50,8 @@ export default function ChatPage() {
             conversationId={conversationId}
             messageCount={messages.length}
             saveStatus={saveStatus}
+            getDocs={getDocs}
+            setGetDocs={setGetDocs}
             onHistoryClick={() => {
               loadConversationHistory();
               setShowHistory(true);
