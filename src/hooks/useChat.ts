@@ -40,6 +40,8 @@ export const useChat = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const baseUrl = "http://localhost:5000";
+
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -48,7 +50,12 @@ export const useChat = () => {
   // Load conversation history
   const loadConversationHistory = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/chat/history");
+      const response = await fetch(`${baseUrl}/api/chat/history`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setConversationHistory(data.data || []);
@@ -61,7 +68,7 @@ export const useChat = () => {
   // Save current conversation
   const saveConversation = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/chat/history", {
+      const response = await fetch(`${baseUrl}/api/chat/history`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,7 +102,7 @@ export const useChat = () => {
   const loadConversation = async (convId: string) => {
     try {
       console.log(`Loading conversation ${convId}`);
-      const response = await fetch(`http://localhost:5000/api/chat/${convId}`);
+      const response = await fetch(`${baseUrl}/api/chat/${convId}`);
 
       if (!response.ok) {
         throw new Error("Failed to load conversation");
@@ -126,7 +133,7 @@ export const useChat = () => {
   // Delete a conversation
   const deleteConversation = async (convId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/chat/${convId}`, {
+      const response = await fetch(`${baseUrl}/api/chat/${convId}`, {
         method: "DELETE",
       });
 
@@ -214,7 +221,7 @@ export const useChat = () => {
     });
 
     try {
-      const response = await fetch("http://localhost:5000/api/chat", {
+      const response = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
         body: formData,
       });
